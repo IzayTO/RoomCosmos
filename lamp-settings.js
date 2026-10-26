@@ -1,4 +1,4 @@
-import * as T from './assets/vendor/three.module.js';
+import * as T from './three.module.js?v=2.0.0';
 // Preserve the exact three legacy colours at their original temperatures.
 export const LAMP_TEMPERATURES=[{label:'Cálida · 2700 K',kelvin:2700,color:0xffc38c},{label:'Neutra · 4000 K',kelvin:4000,color:0xffe6cc},{label:'Fría · 6500 K',kelvin:6500,color:0xd4e6ff}];
 const colours=LAMP_TEMPERATURES.map(t=>new T.Color(t.color));

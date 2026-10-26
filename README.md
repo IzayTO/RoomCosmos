@@ -1,75 +1,75 @@
-# Cosmic Room
+# Cosmic Room · 2.0
 
-Una habitación de 9 × 8 metros suspendida entre las estrellas. Aplicación estática con Three.js r186, WebGL 2, JavaScript ES Modules y recursos locales. No necesita Unity, Godot, Node.js, npm ni una compilación.
+Actualización de la habitación existente. Aplicación estática con Three.js r186 y WebGL 2, sin compilación, npm ni servicios externos.
 
-## Publicar manualmente en GitHub Pages
+## Subir desde el iPhone
 
-1. Crea un repositorio nuevo y público, por ejemplo **Cosmic-Room**, en GitHub. Puedes marcar **Add a README file** al crearlo.
-2. Extrae el ZIP. En el repositorio, pulsa **Add file → Upload files**. Sube los archivos extraídos y la carpeta **assets**, conservando sus subcarpetas. **index.html debe quedar en la raíz**, al lado de app.js y styles.css. No subas el ZIP como único archivo. Pulsa **Commit changes**.
-3. Abre **Settings → Pages**. En **Source**, elige **Deploy from a branch**. Selecciona **main** y **/ (root)**, y pulsa **Save**.
-4. Cuando GitHub muestre el enlace de publicación, ábrelo en Chrome/Edge de PC o Safari de iPhone. El mismo enlace funciona en ambos. La publicación puede tardar varios minutos.
+Este ZIP contiene **30 archivos sueltos**, todos al mismo nivel. No hay carpetas internas ni archivos ocultos que debas buscar.
 
-Guía oficial: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+1. Guarda el ZIP en **Archivos** y tócalo para extraerlo. Entra en la carpeta que crea el iPhone: dentro están los 30 archivos.
+2. Abre tu repositorio **RoomCosmos** en GitHub. En **Add file → Upload files → choose your files**, selecciona los 30 archivos extraídos. Súbelos en la raíz y confirma con **Commit changes**. Sube los archivos, no el ZIP. Si GitHub móvil no muestra esas opciones, solicita la versión de escritorio en Safari.
+3. Si Pages ya está activo, no necesitas cambiar su configuración. Para activarlo: **Settings → Pages → Deploy from a branch → main → / (root) → Save**.
+4. Espera a que termine la publicación y abre el enlace de Pages. Recarga la pestaña para cargar la versión 2.0.
 
-No abras index.html mediante doble clic para ejecutar la habitación: los módulos necesitan el enlace HTTP(S) del hosting. No se instala ningún servidor propio.
+Si antes subiste una versión con carpetas, sus recursos antiguos pueden permanecer: este index.html usa exclusivamente los archivos nuevos de la raíz. No hace falta borrarlos para actualizar. En un repositorio nuevo, sube exactamente los mismos 30 archivos.
+
+Las importaciones llevan una marca de versión para evitar mezclar módulos antiguos y nuevos. No se instala un service worker. No abras index.html directamente desde Archivos: la experiencia se ejecuta desde el enlace HTTPS de Pages.
+
+## Cambios de esta entrega
+
+- Paneles con transparencia, desenfoque y tonos de nogal, marfil y bronce.
+- Opción **Experiencia → Reflejos en las ventanas**. Solo controla el vidrio; no cambia los materiales de la madera, el suelo o los objetos.
+- Un único reflejo planar compartido por las tres ventanas. Se actualiza en cada fotograma en que cambia la cámara, el zoom o la iluminación, sin pausas de 250–500 ms. En reposo reutiliza su textura. La calidad reduce resolución, no la cadencia de movimiento.
+- Encendido y apagado eléctrico suave de aproximadamente **0,33 segundos**. La adaptación de exposición continúa por separado.
+- Sombras de las cuatro lámparas y luz arquitectónica en calidad Equilibrada/Alta, conservadas en caché mientras la escena permanece quieta. Ahorro prioriza las sombras de la mesa y de la luz estelar.
+- Tres tiras LED locales en el archivo: fila superior, central e inferior; interruptores individuales, botón de conjunto, intensidad y temperatura. No encienden la iluminación ambiental de toda la habitación.
+- Los LED del archivo por sí solos no producen reflejos en las ventanas cuando las demás lámparas y la arquitectura están apagadas.
+- **Luz → Luz estelar tenue**: azul discreto cerca del ventanal, la mesa y la alfombra. Desactivándola, con todas las otras luces apagadas, el interior queda negro. El cielo exterior sigue visible.
+- Hojas suavizadas y conectadas físicamente a ramas y pecíolos. Ajustes de costuras y molduras del sillón; maceta y libro del mueble posterior separados.
+- Dos cuadros de Sky Explorer VR (atlas lunar y plano del rover), cohete bajo ellos y casco de astronauta en el mueble lateral. Arte y modelos procedurales adaptados del repositorio indicado, con créditos conservados.
+- Zoom suave cerca del archivo y una inspección física de las fotos sin abrir su editor.
+- Treinta carátulas agrupadas en nueve dibujos de geometría para reducir el coste del archivo. Solo la carátula inspeccionada se separa temporalmente.
 
 ## Controles
 
 | Acción | PC | iPhone |
 | --- | --- | --- |
 | Caminar | WASD | Joystick izquierdo |
-| Mirar | Ratón; también arrastrar si no hay captura | Arrastrar sobre el escenario |
-| Interactuar | E o clic al apuntar y estar cerca | Botón contextual |
-| Ajustes | Esc o icono superior | Icono superior |
-| Contemplar sin interfaz | H o icono del ojo | Icono del ojo |
-| Recuperar interfaz | H o botón de esquina | Tocar el escenario o botón de esquina |
+| Mirar | Ratón o arrastrar | Arrastrar sobre el escenario |
+| Interactuar con lámpara o archivo | E / clic al apuntar | Botón contextual |
+| Zoom cerca del archivo | Mantener C | Mantener la lupa |
+| Inspeccionar una foto colocada | Apuntar y pulsar E / clic | Apuntar y tocar Inspeccionar |
+| Girar una foto inspeccionada | Arrastrar | Arrastrar |
+| Devolver la foto | E / Esc / Devolver | Devolver al estante |
+| Editar su información | Editar información | Editar información |
+| Abrir la colección completa cerca del archivo | Botón de los cuadros | Botón de los cuadros |
+| Ajustes | Esc / icono superior | Icono superior |
+| Ocultar interfaz | H / ojo | Ojo |
 
-Acércate a una lámpara y apunta hacia ella para ajustar su encendido, intensidad y temperatura. El botón superior de luces controla las cuatro lámparas y la iluminación arquitectónica a la vez. Los ajustes también permiten cambiar cada lámpara por separado.
+El zoom funciona dentro de un círculo de 3,65 m alrededor del archivo: no exige mirar directamente al estante y permite acercar visualmente las lámparas y objetos vecinos. Al soltar C o la lupa se restaura la visión normal suavemente. Al salir del área, abrir un panel o cambiar de aplicación se cancela el zoom.
 
-La estantería está en la pared posterior: gira para encontrarla. Acércate y pulsa Interactuar. Desde allí puedes agregar hasta 30 imágenes, verlas, editar su nombre/tema/notas/estado, reemplazarlas, eliminarlas y reordenarlas. Usa el asa ⠿ para arrastrar o las flechas en la ficha de una imagen.
+La inspección saca la carátula hacia ti, permite girarla y la devuelve a su ranura. No abre un panel grande ni desplaza las fotos mientras editas sus datos. También puedes iniciarla desde el botón **Inspeccionar carátula en la habitación** de la ficha.
 
-## Guardado y copias
+## Luces
 
-- Imágenes y ajustes se guardan en IndexedDB de ese navegador y ese origen web.
-- Las imágenes se reducen a un máximo de 1536 píxeles por lado; se generan miniaturas de 300 píxeles. La escena utiliza un atlas compartido para las carátulas.
-- **Exportar** descarga una copia JSON con las imágenes, su información, orden y los ajustes. **Importar** permite recuperarla en otro dispositivo, tras confirmar la sustitución de la colección local.
-- Las imágenes personales no se suben a GitHub ni se envían a un servidor. Los estados «Pendiente», «En preparación» y «Publicada» son etiquetas de organización: no publican una imagen en Internet.
-- Borrar los datos del navegador o usar navegación privada puede hacer perder la colección. Conserva una copia exportada de lo que quieras guardar.
-- Si IndexedDB no está disponible, se muestra un aviso permanente: esa sesión sólo conserva los datos en memoria y debes exportarlos antes de salir.
+El botón superior y **Apagar todas las luces** controlan las cuatro lámparas, la arquitectura y las tres filas. La luz estelar es independiente: para oscuridad absoluta, desactívala también.
 
-## Implementación gráfica
+Para ver solamente el archivo iluminado: apaga todas las luces, abre **Luz → Luz del archivo** y activa las filas deseadas o **Encender las tres filas**. Temperatura e intensidad se aplican a las tiras del archivo. Cada lámpara mantiene sus propios ajustes; las tiras arquitectónicas tienen su temperatura separada.
 
-- Habitación cerrada con grosor de paredes, aberturas extruidas, marcos redondeados, techo, paneles, juntas, columnas y ventilaciones.
-- Un sillón curvo acolchado, mesa circular con patas curvas, alfombra ovalada, aparadores acanalados, plantas, cuadros, globos y objetos de sobremesa. Se construyen en 3D; la referencia isométrica no se usa como fondo.
-- Texturas de nogal, tejido y variación superficial generadas localmente; materiales PBR y tonemapping ACES.
-- Cuatro luces de lámpara y luz de relleno arquitectónica, sombras estáticas almacenadas, oclusión de contacto aproximada y entorno prefiltrado. La luz indirecta es una aproximación artística económica; no se ejecuta iluminación global con trazado de rayos.
-- Un único render target planar compartido por los tres cristales. Las actualizaciones se limitan según calidad y dispositivo; no hay tres renders reflejados por fotograma. La variante móvil reduce resolución y frecuencia. El reflejo se desvanece con las luces.
-- El apagado coordina luces reales, materiales emisivos, luz ambiental, intensidad del entorno, reflejos, exposición y visibilidad de estrellas.
-- El cielo A interpreta el concepto cinematográfico indicado: fondo oscuro, estrellas suaves y polvo galáctico. No procede de un proyecto Unity exportado.
-- El cielo B conserva las 41 411 posiciones, magnitudes e índices B−V del catálogo de Sky-Explorer-VR y la estructura procedural original de la Vía Láctea lunar. Se retiraron el Sol, la Tierra, el horizonte, el terreno y los puntos extra del telescopio.
-- Doble rotación por composición de cuaterniones; inclinación, velocidad y sentido independientes.
-- Geometría estática agrupada por material, hojas instanciadas, sombras en caché, atlas de carátulas y resolución adaptable. No se requiere WebGPU.
-- Sonido de ventilación sintetizado localmente y desactivado por defecto.
-- No hay service worker: no se mantiene una caché offline que pueda fijar versiones antiguas. Las actualizaciones siguen la caché HTTP normal del hosting.
+## Tus fotos y ajustes
 
-## Archivos
+Se conserva la base IndexedDB `cosmic-room`, versión 1, y el formato de copias de la primera entrega. La actualización no borra la colección. Usa el mismo navegador y dirección de Pages para acceder a tus datos guardados.
 
-| Archivo | Función |
-| --- | --- |
-| index.html / styles.css | Interfaz, menús y presentación adaptable |
-| app.js | Inicio, escena e integración |
-| room.js / furniture.js / geometry.js | Arquitectura, mobiliario, geometrías y agrupación |
-| materials.js / lighting.js / lamp-settings.js | Texturas, materiales, iluminación y reflejo |
-| cosmos.js / assets/milky-way.js / assets/star-catalog.js | Cielos y catálogo astronómico |
-| controls.js | Movimiento, mirada, joystick y colisiones |
-| gallery.js / storage.js | Estantería, imágenes, metadatos, guardado y copias |
-| settings.js / audio.js | Preferencias y ambiente sonoro |
-| assets/vendor/ | Three.js y sus utilidades locales |
-| CREDITOS.md / assets/*LICENSE.txt | Procedencia y licencias |
-| VERIFICACION.md | Comprobaciones realizadas y sus límites |
+**Exportar** guarda imágenes, nombre, tema, notas, estado, orden y ajustes en un JSON. **Importar** permite llevarlo a otro dispositivo. Exporta una copia de tus fotos antes de borrar datos de Safari o cambiar de dirección web. «Publicada» es una etiqueta de organización: no sube la foto a Internet.
 
-## Estado de verificación
+Las imágenes se comprimen a un máximo de 1536 px por lado; las miniaturas tienen un máximo de 300 px. El estante usa un atlas compartido y la inspección carga una textura de detalle temporal que libera al terminar. No se envían tus imágenes a servidores.
 
-Se verificaron sintaxis, rutas, importaciones, construcción de geometría, colisiones, rotaciones e interacción de la colección con IndexedDB. **El navegador disponible durante la preparación no expuso WebGL 2**, por lo que no se certificó el render final, la compilación de los shaders en un navegador real ni el rendimiento de Safari/iPhone. Las pruebas de la colección se hicieron en una página auxiliar sin renderizador, excluida de esta entrega. Consulta VERIFICACION.md para el alcance exacto.
+## Archivos incluidos — 30
 
-Sky-Explorer-VR no fue modificado. Esta carpeta es independiente.
+index.html, styles.css, app.js, room.js, furniture.js, decor.js, materials.js, geometry.js, lighting.js, lamp-settings.js, cosmos.js, controls.js, gallery.js, storage.js, settings.js, audio.js, prop-artwork.js, milky-way.js, star-catalog.js, three.module.js, three.core.js, Reflector.js, RoundedBoxGeometry.js, BufferGeometryUtils.js, icon.svg, README.md, CREDITOS.md, VERIFICACION.md, THREE-LICENSE.txt y STARS-LICENSE.txt.
+
+## Verificación
+
+Se verificaron sintaxis, importaciones, geometría, colisiones, estados de iluminación, zoom, inspección y restauración de ranuras. En navegador se comprobaron la interfaz, compresión de imágenes, IndexedDB y operaciones de la colección mediante una vista de pruebas sin GPU.
+
+El navegador disponible para preparar esta entrega no proporciona WebGL 2. No se ha comprobado aquí el render WebGL final ni el rendimiento en Safari de un iPhone físico. El detalle de las comprobaciones y su alcance está en VERIFICACION.md.

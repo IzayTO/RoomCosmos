@@ -1,6 +1,6 @@
-import * as T from './assets/vendor/three.module.js';
-import {box,mesh,ring,roundedShape} from './geometry.js';
-import {contactShadow} from './materials.js';
+import * as T from './three.module.js?v=2.0.0';
+import {box,mesh,ring,roundedShape} from './geometry.js?v=2.0.0';
+import {contactShadow} from './materials.js?v=2.0.0';
 
 export const ROOM={width:9,depth:8,height:3.2};
 export function createRoom(root,m){

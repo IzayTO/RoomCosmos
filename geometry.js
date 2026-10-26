@@ -1,6 +1,6 @@
-import * as T from './assets/vendor/three.module.js';
-import {RoundedBoxGeometry} from './assets/vendor/RoundedBoxGeometry.js';
-import {mergeGeometries} from './assets/vendor/BufferGeometryUtils.js';
+import * as T from './three.module.js?v=2.0.0';
+import {RoundedBoxGeometry} from './RoundedBoxGeometry.js?v=2.0.0';
+import {mergeGeometries} from './BufferGeometryUtils.js?v=2.0.0';
 
 const cache=new Map();
 export function mesh(parent,geo,mat,pos=[0,0,0],rot=[0,0,0],shadow=true){

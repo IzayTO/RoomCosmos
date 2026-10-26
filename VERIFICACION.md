@@ -1,31 +1,23 @@
-# Verificación de la entrega
-
-Preparación: 25 de octubre de 2026.
+# Verificación · Cosmic Room 2.0
 
 ## Comprobaciones realizadas
 
-- Todos los módulos JavaScript pasaron la comprobación sintáctica de Node.js. Node se utilizó exclusivamente durante la preparación; el usuario no necesita instalarlo.
-- Todas las importaciones relativas y referencias locales de HTML/CSS se contrastaron con los archivos de la entrega.
-- Se construyeron los modelos con Three.js y se comprobaron posiciones finitas, ventanas, luces y colisiones sin depender del renderizador.
-- La habitación y el mobiliario estáticos se redujeron de 641 mallas a 61 mallas antes de añadir la estantería dinámica, el cosmos y el cristal. Esta cifra es de estructura de escena, no una medición de draw calls o FPS de Safari.
-- Se probaron 5 000 posiciones contra una colisión rectangular girada, el límite de habitación y el desplazamiento con los colisionadores del mobiliario.
-- Se verificó la ortonormalidad de la matriz resultante de 1 000 pasos de doble rotación: determinante próximo a 1.
-- Se comprobó que el catálogo contiene 41 411 estrellas y que la revisión de Three.js es 186.
-- Se probaron rangos y valores inválidos de los ajustes y el rechazo de copias con formato incorrecto, más de 30 entradas o URLs de imagen no permitidas.
-- En el navegador disponible se importaron dos imágenes de prueba (vertical y horizontal), se generaron imágenes comprimidas y miniaturas, y se guardaron en IndexedDB.
-- Se editaron nombre, tema, notas y estado, se cambió el orden de una carátula y se confirmó que los resultados sobrevivían a una recarga.
-- Se descargó una copia JSON, se revisaron sus datos y se volvió a importar con éxito.
-- Se inspeccionó visualmente el panel de colección. Las pruebas usaron imágenes de diagnóstico, no imágenes personales del usuario.
-- El ZIP se comprobó tras su creación y no incluye la página auxiliar de pruebas, imágenes de diagnóstico ni datos de navegador.
+- Sintaxis JavaScript con Node y resolución de importaciones ES Modules, incluidos módulos locales de Three.js. Rutas relativas compatibles con la raíz o una subruta de GitHub Pages.
+- Construcción real de las geometrías usando Three.js y Canvas 2D local: posiciones y normales finitas, 3 ventanas, 4 lámparas, 3 filas y 30 ranuras. Nueve volúmenes de colisión para mobiliario, además del confinamiento de la habitación.
+- 476 hojas instanciadas: cada hoja nace en un pecíolo conectado a una rama. Límites de las plantas dentro de la habitación y separación de la maceta y el libro posterior.
+- Archivo agrupado en nueve dibujos de geometría en reposo. 86 mallas visibles en el árbol completo de habitación y archivo antes de aplicar el descarte por cámara. Esto no es una medición de draw calls ni FPS en una GPU.
+- Apagado y encendido convergen al estado exacto en 20 pasos de 1/60 s (0,333 s). Exposición independiente del apagado de las fuentes.
+- Ruta de actualización planar comprobada con el Reflector real y un contador de pases sin GPU: ocho movimientos consecutivos producen ocho actualizaciones; una vista inmóvil reutiliza la textura; cambiar FOV invalida el reflejo.
+- Desactivar reflejos mantiene las intensidades y la iluminación ambiental de las otras superficies. Con solo LED de archivo encendidos, el reflector está desactivado. Luz estelar independiente de los estados del cosmos.
+- Zoom: solo disponible en el radio cercano al archivo, tanto por teclado como por pulsación táctil; restauración del FOV tras soltar y cancelación al salir del área.
+- Editar una imagen no desplaza la carátula. Inspección: selección con rayo, separación del lote, giro, retorno a la posición y orientación originales, reinserción y liberación de textura de detalle.
+- Ajustes anteriores compatibles; formato de copia JSON versión 1 conservado.
+- Pruebas en navegador con los módulos reales de galería, almacenamiento y ajustes, usando una vista de comprobación separada sin GPU: compresión JPEG de 2048 px a 1536 px; lectura tras escritura en IndexedDB; creación de 30 carátulas; cambio de orden; serialización y validación de la copia; controles de filas y reflejos.
+- Inspección visual de paneles cálidos con transparencia y desenfoque. Para esa revisión de interfaz se utilizó una captura aportada como fondo de la vista de pruebas; esa captura y la vista de pruebas no forman parte del proyecto final.
+- Integridad ZIP: 30 archivos no vacíos, sin directorios ni rutas internas. No contiene dependencias de CDN, herramientas de desarrollo ni datos de prueba.
 
-## Límites de las pruebas
+## Límite de la comprobación
 
-El navegador del entorno no proporcionó contexto WebGL 2. Por ello:
+El navegador de preparación respondió «WebGL 2 no está disponible». No se verificó la compilación de shaders en GPU, el render final, los FPS ni Safari/iPhone físico. Las comprobaciones numéricas y de interfaz no sustituyen esas mediciones y no se presentan como tales.
 
-- No se validó visualmente el render final de Three.js en ese navegador.
-- No se ejecutó la compilación GLSL de los materiales en un navegador con GPU.
-- No se midieron FPS ni memoria gráfica en iPhone 14 Pro Max, Safari, Chrome o Edge de un equipo real.
-- Los controles táctiles y el ajuste de resolución están implementados, pero no se afirma una prueba física en iPhone.
-- La colección se probó mediante un arnés de interfaz sin WebGL, excluido de los archivos publicados. Esta prueba no equivale a una prueba integral del juego 3D.
-
-El nivel de detalle, la iluminación indirecta y las sombras de contacto son aproximaciones de tiempo real. No se promete identidad píxel a píxel con un render de referencia ni una tasa de fotogramas que no se haya medido.
+La iluminación indirecta y la luz uniforme de las tiras largas se aproximan con materiales, emisión local y luces limitadas por distancia. No se calcula iluminación global mediante trazado de rayos. Las sombras se guardan mientras la geometría permanece estática; la inspección invalida las sombras cercanas.

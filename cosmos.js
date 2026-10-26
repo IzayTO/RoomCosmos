@@ -1,6 +1,6 @@
-import * as T from './assets/vendor/three.module.js';
-import {catalog} from './assets/star-catalog.js';
-import {milkyWayFragment} from './assets/milky-way.js';
+import * as T from './three.module.js?v=2.0.0';
+import {catalog} from './star-catalog.js?v=2.0.0';
+import {milkyWayFragment} from './milky-way.js?v=2.0.0';
 
 const eq=(ra,de)=>{ra*=Math.PI/180;de*=Math.PI/180;return new T.Vector3(Math.cos(de)*Math.cos(ra),Math.sin(de),Math.cos(de)*Math.sin(ra));};
 const GN=eq(192.8595,27.1283),GC=eq(266.4051,-28.9362),GT=new T.Vector3().crossVectors(GN,GC).normalize(),UP=new T.Vector3(0,1,0);

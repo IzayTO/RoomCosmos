@@ -1,7 +1,8 @@
-import * as T from './assets/vendor/three.module.js';
-import {box,mesh,sphere,cylinder,lathe,tube,line,torus,roundedShape} from './geometry.js';
-import {contactShadow,rng} from './materials.js';
-import {drawArtwork} from './assets/prop-artwork.js';
+import * as T from './three.module.js?v=2.0.0';
+import {box,mesh,sphere,cylinder,lathe,tube,line,torus,roundedShape} from './geometry.js?v=2.0.0';
+import {contactShadow,rng} from './materials.js?v=2.0.0';
+import {drawArtwork} from './prop-artwork.js?v=2.0.0';
+import {spaceModel,framedArtwork} from './decor.js?v=2.0.0';
 
 export function createFurniture(root,m){
  const colliders=[],lamps=[],targets=[];
@@ -26,26 +27,37 @@ export function createFurniture(root,m){
   lamps.push({id,name,position:pos,shade,bulbMat,basePower:id==='table'?29:18});targets.push({type:'lamp',id,label:name,position:pos.clone(),radius:2.25});
   return l;
  }
- // The leaf section follows the curved procedural leaves in Sky-Explorer-VR's
- // prop-detail-models.js; scaled and recoloured for the ficus in the reference.
- function leafGeometry(){const ps=[],uv=[];const at=(t,u)=>[u*.5*Math.pow(Math.sin(Math.PI*t),.72),.10*Math.sin(Math.PI*t)-.08*t*t+(1-u*u)*.06,t];for(let i=0;i<7;i++)for(let j=0;j<2;j++){const a=[i/7,j-1],b=[i/7,j],c=[(i+1)/7,j],d=[(i+1)/7,j-1];for(const p of [a,c,b,a,d,c]){ps.push(...at(...p));uv.push(p[1]*.5+.5,p[0]);}}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(ps,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.computeVertexNormals();return g;}
- const leafGeo=leafGeometry();
+ // Indexed curved leaves have smooth normals. Every blade grows from a
+ // petiole connected to an explicit branch, rather than a random point in air.
+ function leafGeometry(){
+  const ps=[],uv=[],indices=[],rows=12,cols=4;
+  for(let i=0;i<=rows;i++)for(let j=0;j<=cols;j++){const t=i/rows,u=j/cols*2-1;ps.push(u*.48*Math.pow(Math.sin(Math.PI*t),.72),.10*Math.sin(Math.PI*t)-.10*t*t+(1-u*u)*.055*Math.sin(Math.PI*t),t);uv.push(j/cols,t);}
+  for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){const a=i*(cols+1)+j,b=a+cols+1;indices.push(a,b,a+1,a+1,b,b+1);}
+  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(ps,3));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geo.setIndex(indices);geo.computeVertexNormals();return geo;
+ }
+ const leafGeo=leafGeometry(),leafAxis=new T.Vector3(0,0,1);
  function plant(g,size=1,large=true,seed=37){
-  const r=rng(seed),H=large?.46:.14,R=large?.38:.10;
-  if(large){box(g,[.78,.47,.64],m.ceramic,[0,.24,0],.045);box(g,[.69,.015,.55],m.soil,[0,.48,0],.04);}
+  const r=rng(seed),H=large?.48:.14,R=large?.38:.10;
+  g.name=large?'Ficus with attached leaves':'Table plant with attached leaves';g.userData.plant={branches:0,leaves:0,attached:0};
+  if(large){box(g,[.78,.47,.64],m.ceramic,[0,.24,0],.045);box(g,[.69,.015,.55],m.soil,[0,H,0],.04);}
   else {lathe(g,[[0,0],[R*.8,0],[R*.85,.03],[R,H],[R*.88,H+.005],[R*.8,.04],[0,.04]],m.ceramic);cylinder(g,R*.88,.009,m.soil,[0,H-.005,0]);}
-  const count=large?164:46,buckets=[[],[],[],[]],dummy=new T.Object3D();
-  for(let branch=0;branch<(large?9:6);branch++){
-   const a=branch*2.399,h=large?.65+r()*.9:.13+r()*.14,reach=large?.2+r()*.36:.06+r()*.06;
-   const start=[(r()-.5)*R*.4,H,(r()-.5)*R*.4],end=[Math.cos(a)*reach,H+h,Math.sin(a)*reach];
-   tube(g,[start,[end[0]*.35,H+h*.55,end[2]*.35],end],large?.015:.003,m.woodEdge,12);
+  const buckets=[[],[],[],[]],dummy=new T.Object3D(),branches=large?13:7;
+  for(let branch=0;branch<branches;branch++){
+   const a=branch*2.399,h=large?.55+r()*.88:.12+r()*.13,reach=large?.20+r()*.27:.025+r()*.035;
+   const points=[new T.Vector3(Math.cos(a)*R*.10,H-.004,Math.sin(a)*R*.10),new T.Vector3(Math.cos(a)*reach*.28,H+h*.57,Math.sin(a)*reach*.28),new T.Vector3(Math.cos(a)*reach,H+h,Math.sin(a)*reach)];
+   const curve=new T.CatmullRomCurve3(points);
+   mesh(g,new T.TubeGeometry(curve,14,large?.010:.0028,6,false),m.woodEdge);g.userData.plant.branches++;
+   const pairs=large?7:4;
+   for(let n=0;n<pairs;n++)for(const sign of [-1,1]){
+    const t=.30+.67*(n+.35*(sign>0))/pairs,node=curve.getPoint(t),angle=a+sign*(.7+r()*.5);
+    const out=new T.Vector3(Math.cos(angle),.10+r()*.38,Math.sin(angle)).normalize();
+    const start=node.clone().addScaledVector(out,large?.035:.009),length=large?.22+r()*.095:.055+r()*.027;
+    line(g,node.toArray(),start.toArray(),large?.0025:.0009,m.woodEdge);
+    dummy.position.copy(start);dummy.quaternion.setFromUnitVectors(leafAxis,out);dummy.rotateZ((r()-.5)*.55);dummy.scale.set(length*.70,length,length);dummy.updateMatrix();buckets[(branch+n)%4].push(dummy.matrix.clone());
+    g.userData.plant.leaves++;g.userData.plant.attached++;
+   }
   }
-  for(let i=0;i<count;i++){
-   const a=i*2.399,level=r(),reach=(large?.58:.14)*Math.sqrt(r())*(.6+.4*Math.sin(level*Math.PI));
-   const start=new T.Vector3(Math.cos(a)*reach,H+(.16+level)*(large?1.2:.2),Math.sin(a)*reach),out=new T.Vector3(Math.cos(a)*.7,(r()-.3)*.8,Math.sin(a)*.7).normalize();
-   const length=large?.23+r()*.13:.06+r()*.04;dummy.position.copy(start);dummy.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),out);dummy.rotateZ(r()*1.6);dummy.scale.set(length*.72,length,length);dummy.updateMatrix();buckets[i%4].push(dummy.matrix.clone());
-  }
-  buckets.forEach((matrices,i)=>{const im=new T.InstancedMesh(leafGeo,m.leaf[i],matrices.length);matrices.forEach((mat,j)=>im.setMatrixAt(j,mat));im.castShadow=true;im.receiveShadow=true;im.instanceMatrix.needsUpdate=true;g.add(im);});
+  buckets.forEach((matrices,i)=>{const im=new T.InstancedMesh(leafGeo,m.leaf[i],matrices.length);matrices.forEach((matrix,j)=>im.setMatrixAt(j,matrix));im.name='Attached smooth leaves';im.castShadow=true;im.receiveShadow=true;im.instanceMatrix.needsUpdate=true;im.computeBoundingSphere();g.add(im);});
   g.scale.setScalar(size);return g;
  }
  function armillary(g,x,y,z,r=.16){
@@ -68,9 +80,15 @@ export function createFurniture(root,m){
  box(chair,[.93,.13,.86],m.woodEdge,[0,.47,-.04],.08);
  box(chair,[.91,.20,.84],m.fabric,[0,.59,-.075],.095);
  const cushion=box(chair,[.49,.29,.16],m.rug,[0,.78,.19],.075);cushion.rotation.x=-.17;
- // Curved piping follows the crown and the side edges of the padded back.
- tube(chair,[[-.47,.62,.27],[-.48,1.18,.30],[-.39,1.43,.29],[0,1.49,.40],[.39,1.43,.29],[.48,1.18,.30],[.47,.62,.27]],.016,m.woodEdge,58);
- tube(chair,[[-.44,.63,-.43],[-.45,.65,.20],[0,.65,.31],[.45,.65,.20],[.44,.63,-.43]],.006,m.piping,38);
+ // Trim is sampled from the same outline and deformation as the upholstered
+ // back: no detached crown or floating ends. Fine seams remain on the fabric.
+ const outline=roundedShape(.98,.94,.21).getPoints(24);
+ const contour=(z,inset=1)=>outline.map(v=>[v.x*inset,v.y*inset+.99,z+.30-.36*(v.x*inset)**2+v.y*inset*.11]);
+ tube(chair,contour(.015,1.015),.015,m.woodEdge,96);
+ tube(chair,contour(-.041,.965),.006,m.piping,96);
+ const seatSeam=roundedShape(.87,.80,.115).getPoints(24).map(v=>[v.x,.644,v.y-.075]);tube(chair,seatSeam,.0045,m.piping,96);
+ for(const x of [-.23,0,.23]){const button=sphere(chair,.014,m.piping,[x,1.16,.30-.36*x*x+.17*.11-.042],[1,1,.35]);button.name='Upholstery button';}
+ tube(chair,[[-.20,.79,.101],[0,.88,.10],[.20,.79,.101]],.0035,m.piping,24);
  for(const s of [-1,1]){
   tube(chair,[[s*.46,.64,-.38],[s*.50,.82,-.36],[s*.49,.90,-.18],[s*.48,.92,.15],[s*.45,1.09,.32]],.035,m.woodEdge,22);
   tube(chair,[[s*.47,.84,-.32],[s*.49,.88,-.18],[s*.47,.92,.16],[s*.44,1.03,.28]],.055,m.fabric,24);
@@ -87,35 +105,45 @@ export function createFurniture(root,m){
  const small=new T.Group();small.position.set(-.23,.768,-.04);table.add(small);plant(small,1,false,48);
  lathe(table,[[0,0],[.07,0],[.08,.016],[.08,.035],[.067,.027],[0,.02]],m.bronze,[-.02,.769,.28],24);sphere(table,.025,m.ceramic,[.005,.805,.28],[1,.5,1]);
  circle(-.53,-.66,.63);contactShadow(root,-.53,-.66,1.65,1.6,.60).position.y=.045;
- // Left credenza, astronomical ornament, books and a lit sepia landscape.
+ // Two original Sky Explorer artworks, rocket below, with breathing room
+ // between books, astronomical ornament and the table lamp.
  const left=cabinet(-4.0,-.9,2.55,.67,.92,Math.PI/2);
- lamp(left,'left','Lámpara del aparador',.80,.962,0,.82);
- book(left,.22,.96,.01,.32,.22,m.leather,.06);book(left,.22,1.02,.01,.29,.20,m.bookRed,-.04);armillary(left,-.76,.96,.02,.17);armillary(left,-.34,.96,.03,.12);
- const artwork=document.createElement('canvas');artwork.width=768;artwork.height=512;const ac=artwork.getContext('2d'),ar=rng(74);
- const gradient=ac.createLinearGradient(0,0,0,512);gradient.addColorStop(0,'#8d8573');gradient.addColorStop(1,'#c6b696');ac.fillStyle=gradient;ac.fillRect(0,0,768,512);
- for(let l=0;l<5;l++){ac.fillStyle=['#8a8270','#77705d','#625e4c','#484b3b','#353b2e'][l];ac.beginPath();ac.moveTo(0,512);for(let x=0;x<=768;x+=8)ac.lineTo(x,195+l*45+Math.sin(x*.012+l*3)*42+ar()*18);ac.lineTo(768,512);ac.fill();}
- for(let i=0;i<18000;i++){ac.fillStyle=ar()>.5?'#ddd6be0b':'#19170b0d';ac.fillRect(ar()*768,ar()*512,2,2);}
- const artMat=new T.MeshStandardMaterial({map:new T.CanvasTexture(artwork),roughness:.9});artMat.map.colorSpace=T.SRGBColorSpace;
- const frame=group(-4.34,1.94,-.90,Math.PI/2);box(frame,[1.24,.90,.055],m.woodEdge,[0,0,0],.025);box(frame,[1.16,.82,.058],m.bronze,[0,0,.01],.015);box(frame,[1.11,.77,.06],m.pages,[0,0,.022],.008);mesh(frame,new T.PlaneGeometry(.95,.62),artMat,[0,0,.055]);
- line(frame,[-.32,.57,0],[-.32,.57,.16],.018,m.bronze);line(frame,[.32,.57,0],[.32,.57,.16],.018,m.bronze);box(frame,[.80,.035,.09],m.bronze,[0,.57,.18],.015);
- const pictureGlow=new T.MeshStandardMaterial({color:0xffe1a7,emissive:0xffd398,emissiveIntensity:1.2});const pg=box(frame,[.72,.009,.05],pictureGlow,[0,.547,.18],.003);pg.userData.dynamic=true;
+ lamp(left,'left','Lámpara del aparador',.86,.967,0,.82);
+ book(left,-.43,.967,.015,.28,.21,m.leather,.04);book(left,-.43,1.025,.015,.25,.19,m.bookRed,-.05);
+ armillary(left,-.96,.967,.015,.145);spaceModel(left,'rocket-model',[.10,.967,.01],.78);
+ const pictureGlow=new T.MeshStandardMaterial({color:0xffe1a7,emissive:0xffd398,emissiveIntensity:0,roughness:.6});
+ for(const [kind,z]of [['lunar-map',-.29],['blueprint',-1.51]]){
+  const frame=framedArtwork(root,m,kind,[-4.34,2.10,z],Math.PI/2);
+  line(frame,[-.27,.55,0],[-.27,.55,.14],.012,m.bronze);line(frame,[.27,.55,0],[.27,.55,.14],.012,m.bronze);
+  box(frame,[.64,.027,.073],m.bronze,[0,.55,.15],.01);
+  const pg=box(frame,[.59,.008,.044],pictureGlow,[0,.533,.15],.003);pg.userData.dynamic=true;pg.castShadow=false;
+ }
  // The two full plants occupy the window corners, leaving the panoramic view.
  for(const [x,seed] of [[-3.63,18],[3.63,42]]){const g=group(x,0,-3.01);plant(g,1,true,seed);rect(x,-3.01,.86,.78);contactShadow(root,x,-3.01,1.4,1.3,.55);}
  const right=cabinet(4.02,.60,2.25,.65,.84,-Math.PI/2);box(right,[2.26,.035,.67],m.marble,[0,.90,0],.05);book(right,-.66,.92,.01,.34,.23,m.bookRed,.06);book(right,-.66,.983,.01,.3,.23,m.leather,-.07);
- lamp(right,'right','Lámpara lateral',.69,.92,.02,.78);armillary(right,-.06,.92,.03,.15);
+ lamp(right,'right','Lámpara lateral',.69,.92,.02,.78);spaceModel(right,'helmet-display',[-.06,.918,.02],1);
  // Low rear furniture and a 30-cover record cabinet.
- const shelf=group(0,0,3.60,Math.PI);
+ const shelf=group(0,0,3.60,Math.PI);shelf.name='Personal archive';
+ const shelfMaterials=[],shelfStrips=[];
+ for(let i=0;i<3;i++){const wood=m.wood.clone(),edge=m.woodEdge.clone(),leather=m.leather.clone(),paper=m.pages.clone();wood.emissiveMap=wood.map;shelfMaterials.push([wood,edge,leather,paper]);shelfStrips.push(new T.MeshStandardMaterial({color:0xffdfad,emissive:0xffd09a,emissiveIntensity:0,roughness:.6}));}
  box(shelf,[5.34,.63,.62],m.wood,[0,.37,0],.065);box(shelf,[5.42,.07,.68],m.woodEdge,[0,.72,0],.045);
  for(const x of [-2.5,-1.25,0,1.25,2.5])box(shelf,[.026,.50,.03],m.bronze,[x,.38,.325],.005);
- box(shelf,[5.32,1.77,.08],m.wood,[0,1.65,-.23],.02);
+ for(let i=0;i<3;i++){
+  box(shelf,[5.32,.58,.08],shelfMaterials[i][0],[0,1.075+i*.58,-.23],.012);
+  const strip=box(shelf,[5.20,.012,.021],shelfStrips[i],[0,1.322+i*.58,.17],.003);strip.userData.dynamic=true;strip.castShadow=false;
+  box(shelf,[5.28,.025,.04],m.woodEdge,[0,1.337+i*.58,.212],.006);
+ }
  for(const x of [-2.66,2.66])box(shelf,[.09,1.89,.44],m.woodEdge,[x,1.65,-.04],.028);
  for(const y of [.78,1.36,1.94,2.52]){box(shelf,[5.35,.048,.46],m.wood,[0,y,-.02],.012);box(shelf,[5.30,.018,.025],m.bronze,[0,y+.025,.225],.004);}
  for(let col=1;col<10;col++)box(shelf,[.018,1.73,.39],m.woodEdge,[-2.64+col*.528,1.67,-.02],.004);
  rect(0,3.60,5.44,.68,Math.PI);contactShadow(root,0,3.60,6,.9,.4);
- const displayLight=lamp(shelf,'gallery','Lámpara del archivo',-2.92,.64,0,.78);
- const plantBack=group(-3.05,.62,3.55);plant(plantBack,1,false,72);const low=cabinet(-3.31,3.58,1.05,.60,.60);book(low,.1,.64,0,.30,.22,m.bookGreen);
+ lamp(shelf,'gallery','Lámpara del archivo',-2.92,.647,0,.78);
+ const low=cabinet(-3.31,3.58,1.05,.60,.60);
+ const plantBack=new T.Group();plantBack.position.set(.25,.647,-.015);low.add(plantBack);plant(plantBack,1,false,72);
+ book(low,-.25,.647,.035,.30,.22,m.bookGreen,.04);
+ low.name='Rear cabinet with separated plant and book';
  const globeStand=group(3.49,.65,3.52);cylinder(globeStand,.16,.04,m.woodEdge,[0,.02,0]);cylinder(globeStand,.018,.16,m.bronze,[0,.12,0]);
  const moonCanvas=document.createElement('canvas');moonCanvas.width=moonCanvas.height=512;drawArtwork('moon',moonCanvas.getContext('2d'));const moonMap=new T.CanvasTexture(moonCanvas);moonMap.colorSpace=T.SRGBColorSpace;const globeMat=new T.MeshStandardMaterial({map:moonMap,roughness:.85});sphere(globeStand,.20,globeMat,[0,.36,0]);torus(globeStand,.226,.007,m.bronze,[0,.36,0],[0,0,-.3]);cabinet(3.25,3.58,1.05,.60,.60);
  root.updateMatrixWorld(true);const shelfPoint=new T.Vector3(0,1.65,.4);shelf.localToWorld(shelfPoint);targets.push({type:'gallery',id:'gallery',label:'Archivo personal · 30 carátulas',position:shelfPoint,radius:2.8});
- return {colliders,lamps,targets,shelf,pictureGlow};
+ return {colliders,lamps,targets,shelf,pictureGlow,shelfMaterials,shelfStrips};
 }

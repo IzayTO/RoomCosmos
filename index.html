@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
- <meta name="theme-color" content="#171a17"><meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="theme-color" content="#30251d"><meta name="apple-mobile-web-app-capable" content="yes">
  <meta name="description" content="Un refugio humano en la inmensidad del cosmos. Una habitación en tres dimensiones, luz cálida y tu archivo personal de imágenes.">
- <title>Cosmic Room · Un refugio entre estrellas</title><link rel="icon" href="./assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css">
+ <title>Cosmic Room · Un refugio entre estrellas</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css?v=2.0.0">
 </head>
 <body>
  <canvas id="scene" tabindex="0" aria-label="Habitación tridimensional. WASD para caminar, arrastrar o ratón para mirar, E para interactuar."></canvas>
@@ -24,11 +24,19 @@
   </nav></header>
   <div id="reticle" aria-hidden="true"></div>
   <button id="interaction" hidden><span class="key">E</span><span id="interaction-label">Interactuar</span><span aria-hidden="true">↗</span></button>
+  <div id="archive-tools" hidden>
+   <button id="zoom" class="icon-button" aria-label="Mantén pulsado para ampliar" aria-pressed="false" title="Mantén C · ampliar"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M10 7v6m-3-3h6"/></svg><span class="desktop-help">C</span></button>
+   <button id="open-collection" class="icon-button" aria-label="Abrir colección de imágenes" title="Colección"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="15" height="16" rx="1"/><path d="M2 17V2h15m-9 14 4-4 3 3 2-2 3 4"/><circle cx="15" cy="9" r="1"/></svg></button>
+  </div>
   <div id="joystick" aria-label="Joystick para caminar" role="application"><span></span></div>
   <div id="walk-hint"><span class="desktop-help">WASD <i>caminar</i> &nbsp; E <i>interactuar</i> &nbsp; ESC <i>ajustes</i></span><span class="touch-help">Arrastra a la derecha para mirar</span></div>
   <div id="fps" hidden aria-live="off"></div>
  </div>
  <button id="restore-ui" class="icon-button" aria-label="Mostrar interfaz" hidden><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
+ <div id="inspection" hidden aria-label="Inspección de la carátula">
+  <div class="inspection-title"><span id="inspection-name"></span><small>Arrastra para girar · E o Esc para devolver</small></div>
+  <div class="inspection-actions"><button id="inspection-edit" class="secondary">Editar información</button><button id="inspection-close" class="primary">Devolver al estante ↩</button></div>
+ </div>
  <div id="toast" role="status" aria-live="polite" hidden></div>
  <div id="storage-warning" hidden>Guardado no disponible en este navegador. Exporta una copia antes de salir.</div>
  <div id="scrim" hidden></div>
@@ -52,24 +60,38 @@
    <div data-tab-page="light" hidden>
     <button class="wide primary" data-all-lights>Apagar todas las luces</button>
     <label class="switch-row setting-section">Iluminación arquitectónica<input type="checkbox" data-setting="architecture"></label>
+    <label class="slider-label">Temperatura arquitectónica <output data-value="architectureKelvin"></output><input type="range" data-setting="architectureKelvin" min="2700" max="6500" step="50"></label>
     <label class="field">Ajustar una lámpara<select id="lamp-select"><option value="table">Lámpara de la mesa</option><option value="left">Aparador izquierdo</option><option value="right">Mueble lateral derecho</option><option value="gallery">Archivo personal</option></select></label>
     <label class="switch-row">Encendida<input id="lamp-on" type="checkbox"></label>
     <label class="slider-label">Intensidad <output id="lamp-intensity-value"></output><input id="lamp-intensity" type="range" min="0" max="1" step=".01"></label>
     <label class="slider-label">Temperatura <output id="lamp-kelvin-value"></output><input id="lamp-kelvin" type="range" min="2700" max="6500" step="50"></label><div class="scale"><span>Ámbar · 2700 K</span><span>Fría · 6500 K</span></div>
+    <div class="setting-section">
+     <h3 class="section-title">Luz del archivo</h3><p class="note">Tiras cálidas sobre las carátulas. Iluminan el estante y su entorno cercano.</p>
+     <button class="secondary wide shelf-master" data-shelf-lights>Apagar las tres filas</button>
+     <label class="switch-row">Fila superior · 21–30<input type="checkbox" data-setting="shelfTop"></label>
+     <label class="switch-row">Fila central · 11–20<input type="checkbox" data-setting="shelfMiddle"></label>
+     <label class="switch-row">Fila inferior · 01–10<input type="checkbox" data-setting="shelfBottom"></label>
+     <label class="slider-label">Intensidad de las tiras <output data-value="shelfIntensity"></output><input type="range" data-setting="shelfIntensity" min="0" max="1" step=".01"></label>
+     <label class="slider-label">Temperatura de las tiras <output data-value="shelfKelvin"></output><input type="range" data-setting="shelfKelvin" min="2700" max="6500" step="50"></label>
+    </div>
+    <label class="switch-row setting-section">Luz estelar tenue<input type="checkbox" data-setting="starlight"></label>
+    <p class="note">Un leve azul sobre la zona de la ventana, la mesa y la alfombra. Desactívalo para una oscuridad total con las lámparas apagadas. Las estrellas del exterior permanecen visibles.</p>
     <label class="slider-label setting-section">Exposición <output data-value="exposure"></output><input data-setting="exposure" type="range" min=".5" max="1.8" step=".01"></label>
-    <p class="note">Apaga las luces y espera unos segundos: los reflejos se atenúan y tus ojos se adaptan al cosmos.</p>
+    <p class="note">Las lámparas se apagan suavemente en unas décimas. Después, la exposición se adapta al cosmos. Los LED del archivo, por sí solos, no activan reflejos en el vidrio.</p>
    </div>
    <div data-tab-page="experience" hidden>
     <label class="slider-label">Sensibilidad de cámara <output data-value="sensitivity"></output><input data-setting="sensitivity" type="range" min=".2" max="2.5" step=".05"></label>
     <label class="slider-label">Campo de visión <output data-value="fov"></output><input data-setting="fov" type="range" min="45" max="90" step="1"></label>
     <label class="field">Calidad gráfica<select data-setting="quality"><option value="auto">Automática · se adapta al dispositivo</option><option value="low">Ahorro</option><option value="balanced">Equilibrada</option><option value="high">Alta</option></select></label>
+    <label class="switch-row">Reflejos en las ventanas<input type="checkbox" data-setting="windowReflections"></label>
+    <p class="note">Controla solamente el vidrio. La madera y los objetos conservan sus acabados. Los reflejos siguen el movimiento de la cámara; la calidad ajusta su resolución.</p>
     <label class="switch-row">Mostrar FPS<input type="checkbox" data-setting="fps"></label>
     <label class="slider-label setting-section">Ambiente sonoro <output data-value="volume"></output><input data-setting="volume" type="range" min="0" max="1" step=".01"></label>
     <p class="note">Una ventilación muy tenue. Déjalo en cero para contemplar en silencio.</p>
-    <div class="control-guide"><p>PC <span>WASD · caminar<br>Ratón o arrastrar · mirar<br>E o clic · interactuar<br>Esc · ajustes &nbsp; H · contemplar</span></p><p>iPhone <span>Joystick izquierdo · caminar<br>Arrastrar · mirar<br>Botón contextual · interactuar</span></p></div>
+    <div class="control-guide"><p>PC <span>WASD · caminar<br>Ratón o arrastrar · mirar<br>E o clic · interactuar<br>Mantener C · zoom cerca del archivo<br>Esc · ajustes &nbsp; H · contemplar</span></p><p>iPhone <span>Joystick izquierdo · caminar<br>Arrastrar · mirar<br>Botón contextual · interactuar<br>Mantener la lupa · zoom cerca del archivo</span></p></div>
     <button id="reset-view" class="secondary wide">Volver al punto de entrada</button>
    </div>
-  </div><footer class="panel-foot"><span>COSMIC ROOM</span><span>01 — OBSERVATORIO</span></footer>
+  </div><footer class="panel-foot"><span>COSMIC ROOM</span><span>2.0 — OBSERVATORIO</span></footer>
  </section>
  <section id="gallery-panel" class="panel gallery-panel" role="dialog" aria-modal="true" aria-labelledby="gallery-title" hidden>
   <div class="panel-heading"><div><p class="eyebrow">RECUERDOS, IDEAS, UNIVERSOS</p><h2 id="gallery-title">Tu archivo personal</h2></div><button class="close icon-button" aria-label="Cerrar archivo">×</button></div>
@@ -80,6 +102,7 @@
    <div id="album-grid"></div><p class="note">Arrastra el asa ⠿ de una carátula para cambiar su lugar. También puedes ordenar con las flechas al abrirla.</p>
   </div>
   <div id="album-detail" class="panel-scroll" hidden>
+   <button id="inspect-from-editor" class="secondary wide">Inspeccionar carátula en la habitación ↗</button>
    <button id="album-back" class="text-button">← Toda la colección</button><div class="album-preview"><img id="album-image" alt="Imagen seleccionada"></div>
    <div class="album-order"><span id="album-position"></span><button id="move-before" class="secondary" aria-label="Mover una posición antes">←</button><button id="move-after" class="secondary" aria-label="Mover una posición después">→</button></div>
    <form id="album-form"><label class="field">Nombre<input id="album-title" maxlength="100" required></label><div class="form-columns"><label class="field">Tema<input id="album-theme" maxlength="100" placeholder="Ideas, recuerdos, proyectos…"></label><label class="field">Estado<select id="album-status"><option>Pendiente</option><option>En preparación</option><option>Publicada</option></select></label></div><label class="field">Notas<textarea id="album-notes" maxlength="5000" rows="4" placeholder="¿Qué historia hay detrás de esta imagen?"></textarea></label><div class="form-actions"><button type="submit" class="primary">Guardar cambios</button><button type="button" id="replace-image" class="secondary">Reemplazar imagen</button><button type="button" id="delete-image" class="danger">Eliminar</button></div></form>
@@ -91,6 +114,6 @@
  <input id="image-input" type="file" accept="image/*" multiple hidden><input id="replace-input" type="file" accept="image/*" hidden><input id="backup-input" type="file" accept="application/json,.json" hidden>
  <section id="fatal" hidden role="alert"><h2>No se pudo abrir la habitación.</h2><p id="fatal-message"></p><button onclick="location.reload()" class="primary">Volver a intentar</button></section>
  <noscript>Cosmic Room necesita JavaScript para mostrar la habitación.</noscript>
- <script type="module" src="./app.js"></script>
+ <script type="module" src="./app.js?v=2.0.0"></script>
 </body>
 </html>

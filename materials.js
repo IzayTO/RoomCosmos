@@ -1,4 +1,4 @@
-import * as T from './assets/vendor/three.module.js';
+import * as T from './three.module.js?v=2.0.0';
 export const rng=(seed=941)=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 function canvasTexture(w,h,draw,color=true){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.colorSpace=color?T.SRGBColorSpace:T.NoColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=4;return t;}
 function woodTexture(){return canvasTexture(1024,1024,(c,w,h)=>{
@@ -17,15 +17,15 @@ export function createMaterials(renderer){
  const noise=canvasTexture(128,128,(c,w,h)=>{const im=c.createImageData(w,h),r=rng(341);for(let i=0;i<im.data.length;i+=4){const v=170+r()*25;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255;}c.putImageData(im,0,0);},false);
  const p=(color,roughness=.55,metalness=0,extra={})=>new T.MeshStandardMaterial({color,roughness,metalness,...extra});
  const m={
-  floor:p(0xa38a6b,.3,.03,{map:wood,bumpMap:wood,bumpScale:.004,roughnessMap:noise}),
-  wood:p(0x80613e,.34,.02,{map:furnitureWood,bumpMap:furnitureWood,bumpScale:.003}),
-  woodEdge:p(0x2c1c10,.28,.05),ivory:p(0xd3cbb7,.44,.16,{bumpMap:noise,bumpScale:.004}),
+  floor:p(0xa38a6b,.36,.03,{map:wood,bumpMap:wood,bumpScale:.004,roughnessMap:noise}),
+  wood:p(0x80613e,.42,.02,{map:furnitureWood,bumpMap:furnitureWood,bumpScale:.003}),
+  woodEdge:p(0x2c1c10,.36,.05),ivory:p(0xd3cbb7,.44,.16,{bumpMap:noise,bumpScale:.004}),
   trim:p(0xbdb8ab,.34,.25),gasket:p(0x252822,.82),bronze:p(0x8e6f3a,.32,.78),dark:p(0x151712,.75),
   fabric:p(0x8b8072,.94,0,{map:chairTex,bumpMap:chairTex,bumpScale:.012}),
   piping:p(0x5b4b39,.83),rug:p(0xc5b394,1,0,{map:rugTex,bumpMap:rugTex,bumpScale:.005,side:T.DoubleSide}),
   ceramic:p(0xcfc7b3,.23,.03),vase:p(0x46372a,.26,.07),soil:p(0x231e14,1),pages:p(0xd0c5a9,.9),
   leather:p(0x39332b,.77),bookRed:p(0x543f30,.8),bookGreen:p(0x3e4940,.85),marble:p(0x242722,.24,.2,{bumpMap:noise,bumpScale:.003}),
-  leaf:[0x304921,0x405527,0x536334,0x344726].map(color=>p(color,.48,0,{side:T.DoubleSide})),
+  leaf:[0x304921,0x405527,0x536334,0x344726].map(color=>p(color,.57,0,{side:T.DoubleSide})),
  };
  // A single prefiltered environment gives metal/wood a restrained response.
  // Its intensity follows the lamps, so it cannot light the dark room forever.
