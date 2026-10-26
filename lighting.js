@@ -3,11 +3,16 @@ import {Reflector} from './Reflector.js?v=2.0.0';
 import {mergeGeometries} from './BufferGeometryUtils.js?v=2.0.0';
 import {lampColour} from './lamp-settings.js?v=2.0.0';
 
+// Manual brightness multipliers at 100%. Tenue keeps its previous maximum.
+export const STARLIGHT_STRENGTH={tenue:5,solid:4};
+// Degrees ABOVE the window-centred horizon. Incoming rays descend at this angle.
+export const STARLIGHT_ELEVATION=20;
+
 // A short electrical fade; eye adaptation is handled separately.
 export function fadeLight(value,target,dt){const v=target+(value-target)*Math.exp(-Math.max(0,dt)*22);return Math.abs(v-target)<.001?target:v;}
 export class Lighting{
  constructor(scene,renderer,m,room,furniture,mobile){
-  Object.assign(this,{scene,renderer,m,room,furniture,mobile});this.level=0;this.archLevel=0;this.starLevel=0;this.reflectionDirty=true;this.lastExposure=0;
+  Object.assign(this,{scene,renderer,m,room,furniture,mobile});this.level=0;this.archLevel=0;this.starLevel=0;this.solidLevel=0;this.solidElevation=STARLIGHT_ELEVATION;this.reflectionDirty=true;this.lastExposure=0;
   this.reflectionView=new T.Matrix4();this.reflectionProjection=new T.Matrix4();this.warm=new T.Color();
   scene.environment=m.environment;scene.environmentIntensity=0;
   this.hemi=new T.HemisphereLight(0xe6cda6,0x6b4a2b,0);scene.add(this.hemi);
@@ -16,6 +21,15 @@ export class Lighting{
    const light=new T.PointLight(0xffd2a0,0,8,2);light.position.copy(def.position);this.configureShadow(light,512);scene.add(light);return {...def,light,amount:0};
   });
   this.star=new T.SpotLight(0x6585b4,0,6.8,1.12,.95,2);this.star.position.set(0,2.40,-3.62);this.star.target.position.set(0,.2,-.25);scene.add(this.star,this.star.target);this.configureShadow(this.star,512);
+  // One exterior parallel source: the actual wall openings cut all three beams.
+  // No ambient fill is added; unlit surfaces stay dark when room lamps are off.
+  this.solidStar=new T.DirectionalLight(0xb6c9ef,0);this.solidStar.name='Solid starlight';
+  const elevation=STARLIGHT_ELEVATION*Math.PI/180;
+  this.solidStar.target.position.set(0,1.6,0);this.solidStar.position.set(0,1.6+12*Math.sin(elevation),-12*Math.cos(elevation));
+  this.solidStar.visible=false;this.solidStar.castShadow=true;
+  const shadow=this.solidStar.shadow;shadow.mapSize.set(1024,1024);shadow.camera.left=-5.4;shadow.camera.right=5.4;shadow.camera.top=5;shadow.camera.bottom=-5;shadow.camera.near=.1;shadow.camera.far=30;shadow.camera.updateProjectionMatrix();
+  shadow.bias=-.00008;shadow.normalBias=.008;shadow.radius=1;shadow.autoUpdate=false;shadow.needsUpdate=true;
+  scene.add(this.solidStar,this.solidStar.target);
   this.rows=['shelfBottom','shelfMiddle','shelfTop'].map((key,i)=>{
    const light=new T.PointLight(0xffd09a,0,3.35,2);light.position.set(0,1.26+i*.58,3.22);scene.add(light);return {key,light,amount:0,materials:furniture.shelfMaterials[i],strip:furniture.shelfStrips[i]};
   });
@@ -48,7 +62,10 @@ void main(){vec3 c=texture2DProj(tDiffuse,vUv).rgb;gl_FragColor=vec4(c,reflectio
   for(const light of [this.fill,this.star,...this.lamps.map(l=>l.light)]){
    light.castShadow=!low||light===this.lamps[0].light||light===this.star;
    light.shadow.mapSize.set(size,size);light.shadow.map?.dispose();light.shadow.map=null;light.shadow.needsUpdate=true;
-  }this.invalidate();
+  }
+  const solidSize=high&&!this.mobile?2048:low?512:1024;
+  this.solidStar.shadow.mapSize.set(solidSize,solidSize);this.solidStar.shadow.map?.dispose();this.solidStar.shadow.map=null;
+  this.solidStar.shadow.needsUpdate=true;this.invalidate();
  }
  update(dt,s){
   let total=0,changing=false;
@@ -72,7 +89,19 @@ void main(){vec3 c=texture2DProj(tDiffuse,vUv).rgb;gl_FragColor=vec4(c,reflectio
   }
   for(const l of this.shelfSpill){l.color.copy(this.warm);l.intensity=shelfTotal*.36;}
   // 10% preserves the original light; the full range reaches ten times that level.
-  const oldStar=this.starLevel,starTarget=s.starlight?(s.starlightIntensity??.1)*10:0;this.starLevel=fadeLight(oldStar,starTarget,dt);changing ||= oldStar!==this.starLevel;this.star.intensity=this.starLevel*.50;
+  const nextElevation=fadeLight(this.solidElevation,s.starlightAngle??STARLIGHT_ELEVATION,dt);
+  if(nextElevation!==this.solidElevation){
+   this.solidElevation=nextElevation;const elevation=nextElevation*Math.PI/180;
+   this.solidStar.position.set(0,1.6+12*Math.sin(elevation),-12*Math.cos(elevation));
+   this.solidStar.shadow.needsUpdate=true;this.renderer.shadowMap.needsUpdate=true;changing=true;
+  }
+  const solid=s.starlightMode==='solid',strength=s.starlightIntensity??.1;
+  const oldStar=this.starLevel,starTarget=s.starlight&&!solid?strength*10:0;this.starLevel=fadeLight(oldStar,starTarget,dt);changing ||= oldStar!==this.starLevel;this.star.intensity=this.starLevel*(STARLIGHT_STRENGTH.tenue/10);
+  const oldSolid=this.solidLevel;this.solidLevel=fadeLight(oldSolid,s.starlight&&solid?strength:0,dt);changing ||= oldSolid!==this.solidLevel;
+  this.solidStar.intensity=this.solidLevel*STARLIGHT_STRENGTH.solid;
+  const solidVisible=this.solidLevel>0;
+  if(solidVisible&&!this.solidStar.visible){this.solidStar.shadow.needsUpdate=true;this.renderer.shadowMap.needsUpdate=true;}
+  this.solidStar.visible=solidVisible;
   // Archive LEDs never keep the window reflection alive in an otherwise dark room.
   const visible=s.windowReflections&&level>.001;if(this.reflector.visible!==visible)this.reflectionDirty=true;this.reflector.visible=visible;
   this.reflector.material.uniforms.reflectionAmount.value=level*.255;
@@ -81,7 +110,7 @@ void main(){vec3 c=texture2DProj(tDiffuse,vUv).rgb;gl_FragColor=vec4(c,reflectio
   if(Math.abs(this.renderer.toneMappingExposure-this.lastExposure)>.0001)changing=true;this.lastExposure=this.renderer.toneMappingExposure;
   this.reflectionDirty ||= changing;return level;
  }
- invalidate(){this.renderer.shadowMap.needsUpdate=true;for(const l of [this.fill,this.star,...this.lamps.map(l=>l.light)])l.shadow.needsUpdate=true;this.reflectionDirty=true;}
- invalidateGallery(){this.renderer.shadowMap.needsUpdate=true;this.lamps.find(l=>l.id==='gallery').light.shadow.needsUpdate=true;this.fill.shadow.needsUpdate=true;this.reflectionDirty=true;}
- dispose(){this.reflector.dispose();this.reflector.geometry.dispose();for(const l of [this.fill,this.star,...this.lamps.map(l=>l.light),...this.rows.map(r=>r.light),...this.shelfSpill])l.dispose();}
+ invalidate(){this.renderer.shadowMap.needsUpdate=true;for(const l of [this.fill,this.star,this.solidStar,...this.lamps.map(l=>l.light)])l.shadow.needsUpdate=true;this.reflectionDirty=true;}
+ invalidateGallery(){this.renderer.shadowMap.needsUpdate=true;this.lamps.find(l=>l.id==='gallery').light.shadow.needsUpdate=true;this.fill.shadow.needsUpdate=true;this.solidStar.shadow.needsUpdate=true;this.reflectionDirty=true;}
+ dispose(){this.reflector.dispose();this.reflector.geometry.dispose();for(const l of [this.fill,this.star,this.solidStar,...this.lamps.map(l=>l.light),...this.rows.map(r=>r.light),...this.shelfSpill])l.dispose();}
 }

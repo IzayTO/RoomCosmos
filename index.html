@@ -74,9 +74,12 @@
      <label class="slider-label">Intensidad de las tiras <output data-value="shelfIntensity"></output><input type="range" data-setting="shelfIntensity" min="0" max="1" step=".01"></label>
      <label class="slider-label">Temperatura de las tiras <output data-value="shelfKelvin"></output><input type="range" data-setting="shelfKelvin" min="2700" max="6500" step="50"></label>
     </div>
-    <label class="switch-row setting-section">Luz estelar tenue<input type="checkbox" data-setting="starlight"></label>
+    <label class="switch-row setting-section">Luz estelar<input type="checkbox" data-setting="starlight"></label>
+    <label class="field">Modo de luz estelar<select data-setting="starlightMode"><option value="tenue">Tenue · luz original</option><option value="solid">Sólida · a través de las tres ventanas</option></select></label>
     <label class="slider-label">Intensidad de la luz estelar <output data-value="starlightIntensity"></output><input type="range" data-setting="starlightIntensity" min="0" max="1" step=".01" aria-describedby="starlight-note"></label>
-    <p class="note" id="starlight-note">Luz azul suave que entra por la ventana, sobre la mesa y la alfombra. El 10 % conserva la intensidad original; súbela para iluminar más el interior. Desactívala para una oscuridad total con las lámparas apagadas. Las estrellas del exterior permanecen visibles.</p>
+    <label class="slider-label">Ángulo del modo Sólida <output data-value="starlightAngle"></output><input type="range" data-setting="starlightAngle" min="0" max="90" step="1" aria-describedby="starlight-note"></label>
+    <div class="scale"><span>0° · horizonte</span><span>90° · arriba</span></div>
+    <p class="note" id="starlight-note">Tenue conserva la luz original (10 % = intensidad inicial). Sólida toma la forma de las tres ventanas y empieza a 20° sobre el horizonte. Ajusta su intensidad y su ángulo; cerca de 90° el techo bloquea la entrada de luz. Para ver negro el resto del cuarto, apaga las lámparas, la arquitectura y las tiras del archivo. Las estrellas exteriores permanecen iguales.</p>
     <label class="slider-label setting-section">Exposición <output data-value="exposure"></output><input data-setting="exposure" type="range" min=".5" max="1.8" step=".01"></label>
     <p class="note">Las lámparas se apagan suavemente en unas décimas. Después, la exposición se adapta al cosmos. Los LED del archivo, por sí solos, no activan reflejos en el vidrio.</p>
    </div>
@@ -92,7 +95,7 @@
     <div class="control-guide"><p>PC <span>WASD · caminar<br>Ratón o arrastrar · mirar<br>E o clic · interactuar<br>Mantener C · zoom cerca del archivo<br>Esc · ajustes &nbsp; H · contemplar</span></p><p>iPhone <span>Joystick izquierdo · caminar<br>Arrastrar · mirar<br>Botón contextual · interactuar<br>Mantener la lupa · zoom cerca del archivo</span></p></div>
     <button id="reset-view" class="secondary wide">Volver al punto de entrada</button>
    </div>
-  </div><footer class="panel-foot"><span>COSMIC ROOM</span><span>2.0.1 — OBSERVATORIO</span></footer>
+  </div><footer class="panel-foot"><span>COSMIC ROOM</span><span>2.0.2 — OBSERVATORIO</span></footer>
  </section>
  <section id="gallery-panel" class="panel gallery-panel" role="dialog" aria-modal="true" aria-labelledby="gallery-title" hidden>
   <div class="panel-heading"><div><p class="eyebrow">RECUERDOS, IDEAS, UNIVERSOS</p><h2 id="gallery-title">Tu archivo personal</h2></div><button class="close icon-button" aria-label="Cerrar archivo">×</button></div>
@@ -115,6 +118,6 @@
  <input id="image-input" type="file" accept="image/*" multiple hidden><input id="replace-input" type="file" accept="image/*" hidden><input id="backup-input" type="file" accept="application/json,.json" hidden>
  <section id="fatal" hidden role="alert"><h2>No se pudo abrir la habitación.</h2><p id="fatal-message"></p><button onclick="location.reload()" class="primary">Volver a intentar</button></section>
  <noscript>Cosmic Room necesita JavaScript para mostrar la habitación.</noscript>
- <script type="module" src="./app.js?v=2.0.1"></script>
+ <script type="module" src="./app.js?v=2.0.2"></script>
 </body>
 </html>
