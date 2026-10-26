@@ -3,12 +3,12 @@ import {createMaterials} from './materials.js?v=2.0.0';
 import {createRoom} from './room.js?v=2.0.0';
 import {createFurniture} from './furniture.js?v=2.0.0';
 import {mergeStatic} from './geometry.js?v=2.0.0';
-import {Lighting} from './lighting.js?v=2.0.0';
+import {Lighting} from './lighting.js?v=2.0.1';
 import {Cosmos} from './cosmos.js?v=2.0.0';
 import {Controls,nearArchive} from './controls.js?v=2.0.0';
 import {Storage} from './storage.js?v=2.0.0';
-import {Settings,cloneDefaults} from './settings.js?v=2.0.0';
-import {Gallery} from './gallery.js?v=2.0.0';
+import {Settings,cloneDefaults} from './settings.js?v=2.0.1';
+import {Gallery} from './gallery.js?v=2.0.1';
 import {AmbientAudio} from './audio.js?v=2.0.0';
 
 const $=id=>document.getElementById(id);let toastTimer;function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,5000);}

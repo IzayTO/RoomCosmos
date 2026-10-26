@@ -71,7 +71,8 @@ void main(){vec3 c=texture2DProj(tDiffuse,vUv).rgb;gl_FragColor=vec4(c,reflectio
    for(const material of row.materials){material.emissive.copy(this.warm);material.emissiveIntensity=row.amount*(material.userData.cover ? .24 : .12);}
   }
   for(const l of this.shelfSpill){l.color.copy(this.warm);l.intensity=shelfTotal*.36;}
-  const oldStar=this.starLevel;this.starLevel=fadeLight(oldStar,s.starlight?1:0,dt);changing ||= oldStar!==this.starLevel;this.star.intensity=this.starLevel*.50;
+  // 10% preserves the original light; the full range reaches ten times that level.
+  const oldStar=this.starLevel,starTarget=s.starlight?(s.starlightIntensity??.1)*10:0;this.starLevel=fadeLight(oldStar,starTarget,dt);changing ||= oldStar!==this.starLevel;this.star.intensity=this.starLevel*.50;
   // Archive LEDs never keep the window reflection alive in an otherwise dark room.
   const visible=s.windowReflections&&level>.001;if(this.reflector.visible!==visible)this.reflectionDirty=true;this.reflector.visible=visible;
   this.reflector.material.uniforms.reflectionAmount.value=level*.255;

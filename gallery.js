@@ -2,7 +2,7 @@ import * as T from './three.module.js?v=2.0.0';
 import {box,mesh} from './geometry.js?v=2.0.0';
 import {mergeGeometries} from './BufferGeometryUtils.js?v=2.0.0';
 import {processImage,validateBackup,downloadJSON,MAX_ALBUMS,STATUS} from './storage.js?v=2.0.0';
-import {validateSettings} from './settings.js?v=2.0.0';
+import {validateSettings} from './settings.js?v=2.0.1';
 
 const $=id=>document.getElementById(id);
 export class Gallery{
